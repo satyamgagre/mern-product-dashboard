@@ -1,17 +1,16 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import mongoose from 'mongoose';
-
+import express from "express";
+import dotenv from "dotenv";
+import { connectDB } from "./config/db.js";
 import productRoutes from "./routes/product.route.js";
 
-dotenv.config();
+dotenv.config(); // env vars
 
 const app = express();
-app.use(express.json());
 
-app.use('/api/products'.)
+app.use(express.json()); // parse JSON
 
-/* ================= SERVER ================= */
+app.use("/api/products", productRoutes); // product routes
+
 const PORT = process.env.PORT || 5000;
 
 connectDB()
@@ -21,6 +20,6 @@ connectDB()
     });
   })
   .catch((error) => {
-    console.error("❌ Failed to connect DB:", error);
+    console.error("❌ DB connection failed:", error);
     process.exit(1);
   });
