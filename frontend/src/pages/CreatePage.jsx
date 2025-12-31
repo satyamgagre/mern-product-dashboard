@@ -13,7 +13,7 @@ import { useState } from "react";
 import { useProductStore } from "../store/product";
 
 const CreatePage = () => {
-  const toast = useToast(); // ✅ correct place
+  const toast = useToast(); 
 
   const [newProduct, setNewProduct] = useState({
     name: "",
