@@ -9,22 +9,49 @@ import {
   IconButton,
   useColorModeValue,
   useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  Button,
+  Input,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useProductStore } from "../store/product";
 import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import { useProductStore } from "../store/product";
 
 const HomePage = () => {
+  const { fetchProducts, products, deleteProduct, updateProduct } =
+    useProductStore();
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
   const textColor = useColorModeValue("gray.800", "white");
   const bg = useColorModeValue("white", "gray.800");
 
-  const { fetchProducts, products, deleteProduct } = useProductStore();
-  const toast = useToast();
+  const [updatedProduct, setUpdatedProduct] = useState({
+    name: "",
+    price: "",
+    imageUrl: "",
+    description: "",
+  });
 
-  const handleDeleteProduct = async (pid) => {
-    const { success, message } = await deleteProduct(pid);
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
+  const handleEditClick = (product) => {
+    setUpdatedProduct(product);
+    onOpen();
+  };
+
+  const handleDeleteProduct = async (id) => {
+    const { success, message } = await deleteProduct(id);
     toast({
       title: success ? "Success" : "Error",
       description: message,
@@ -34,9 +61,22 @@ const HomePage = () => {
     });
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  const handleUpdate = async () => {
+    const { success, message } = await updateProduct(
+      updatedProduct._id,
+      updatedProduct
+    );
+
+    toast({
+      title: success ? "Updated" : "Error",
+      description: message,
+      status: success ? "success" : "error",
+      duration: 3000,
+      isClosable: true,
+    });
+
+    if (success) onClose();
+  };
 
   return (
     <Container maxW="container.xl" py={12}>
@@ -56,11 +96,7 @@ const HomePage = () => {
           <Text>
             No Products found{" "}
             <Link to="/create">
-              <Text
-                as="span"
-                color="blue.500"
-                _hover={{ textDecoration: "underline" }}
-              >
+              <Text as="span" color="blue.500">
                 Create a Product
               </Text>
             </Link>
@@ -78,7 +114,6 @@ const HomePage = () => {
                 borderWidth="1px"
                 overflow="hidden"
                 shadow="md"
-                transition="all 0.3s"
                 _hover={{ transform: "translateY(-5px)", shadow: "xl" }}
               >
                 <Image
@@ -90,13 +125,9 @@ const HomePage = () => {
                 />
 
                 <Box p={4}>
-                  <Text fontWeight="bold" fontSize="lg">
-                    {product.name}
-                  </Text>
-
+                  <Text fontWeight="bold">{product.name}</Text>
                   <Text color="gray.500">₹ {product.price}</Text>
-
-                  <Text color="gray.400" fontSize="sm" noOfLines={2}>
+                  <Text color="gray.400" noOfLines={2}>
                     {product.description}
                   </Text>
 
@@ -105,13 +136,12 @@ const HomePage = () => {
                       icon={<EditIcon />}
                       colorScheme="blue"
                       size="sm"
-                      aria-label="Edit Product"
+                      onClick={() => handleEditClick(product)}
                     />
                     <IconButton
                       icon={<DeleteIcon />}
                       colorScheme="red"
                       size="sm"
-                      aria-label="Delete Product"
                       onClick={() => handleDeleteProduct(product._id)}
                     />
                   </HStack>
@@ -121,6 +151,67 @@ const HomePage = () => {
           </SimpleGrid>
         )}
       </VStack>
+
+      {/* UPDATE MODAL */}
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Update Product</ModalHeader>
+          <ModalCloseButton />
+
+          <ModalBody>
+            <VStack spacing={4}>
+              <Input
+                placeholder="Name"
+                value={updatedProduct.name}
+                onChange={(e) =>
+                  setUpdatedProduct({ ...updatedProduct, name: e.target.value })
+                }
+              />
+              <Input
+                type="number"
+                placeholder="Price"
+                value={updatedProduct.price}
+                onChange={(e) =>
+                  setUpdatedProduct({
+                    ...updatedProduct,
+                    price: e.target.value,
+                  })
+                }
+              />
+              <Input
+                placeholder="Image URL"
+                value={updatedProduct.imageUrl}
+                onChange={(e) =>
+                  setUpdatedProduct({
+                    ...updatedProduct,
+                    imageUrl: e.target.value,
+                  })
+                }
+              />
+              <Input
+                placeholder="Description"
+                value={updatedProduct.description}
+                onChange={(e) =>
+                  setUpdatedProduct({
+                    ...updatedProduct,
+                    description: e.target.value,
+                  })
+                }
+              />
+            </VStack>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleUpdate}>
+              Update
+            </Button>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Container>
   );
 };
