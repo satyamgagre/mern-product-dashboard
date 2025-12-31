@@ -8,7 +8,7 @@ export const useProductStore = create((set) => ({
     try {
       const res = await fetch("/api/products");
       const data = await res.json();
-      set({ products: data.data }); // backend returns { success, data }
+      set({ products: data.data });
     } catch (error) {
       console.error("Failed to fetch products:", error);
     }
@@ -27,9 +27,7 @@ export const useProductStore = create((set) => ({
 
     const res = await fetch("/api/products", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newProduct),
     });
 
@@ -40,5 +38,26 @@ export const useProductStore = create((set) => ({
     }));
 
     return { success: true, message: "Product created successfully." };
+  },
+
+  // Delete product
+  deleteProduct: async (pid) => {
+    const res = await fetch(`/api/products/${pid}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      return { success: false, message: data.message };
+    }
+
+    set((state) => ({
+      products: state.products.filter(
+        (product) => product._id !== pid
+      ),
+    }));
+
+    return { success: true, message: data.message };
   },
 }));
