@@ -68,7 +68,7 @@ The app will run on `http://localhost:5000`
 ![Light Mode](frontend/public/LightMode.png)
 
 ### Mobile View
-![Mobile View](screenshots/mobile-view.png)
+![Mobile View](frontend/public/mobile-view.png)
 
 ---
 
